@@ -6,7 +6,7 @@ langchain-community==0.2.0
 langchain-core==0.2.0
 langchain==0.2.0
 
-# 기존 데이터 및 UI 라이브러리
+# 기존 데이터 및 UI 라이브러리 (버전 유지)
 numpy==1.26.4
 pandas==1.5.3
 pydantic==2.9.2
