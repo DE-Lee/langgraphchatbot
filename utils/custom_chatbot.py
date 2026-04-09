@@ -1,8 +1,9 @@
 import os
 from typing import Optional, TypedDict
 
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import font_manager
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders import PyPDFLoader
@@ -18,6 +19,9 @@ from utils.utils import *
 
 load_dotenv()
 api_key = os.environ.get("OPENAI_API_KEY")
+
+# 폰트를 matplotlib에 등록
+font_manager.fontManager.addfont("./utils/fonts/NanumBarunGothic.ttf")
 
 plt.rcParams["axes.unicode_minus"] = False
 plt.rc("font", family="NanumBarunGothic")
@@ -49,8 +53,6 @@ class ExcelPDFChatbot:
             pdf_path (Optional[str], optional): PDF 파일 경로 리스트. Defaults to None.
             pdf_description (Optional[str], optional): PDF 파일 설명 리스트. pdf_path가 None이 아닐 경우, 설명을 반드시 입력해야 합니다. Defaults to None.
         """
-        """
-        # 1. OpenAI 웹사이트에서 발급받은 키 사용 시
         self.llm = ChatOpenAI(
             openai_api_key=api_key,
             model="gpt-4o-mini",
@@ -62,31 +64,7 @@ class ExcelPDFChatbot:
             model="gpt-4o-mini",
             temperature=0,
         )
-        self.embeddings = OpenAIEmbeddings(
-            openai_api_key=api_key,
-            model="text-embedding-3-small"
-        )
-        """
-
-        # 2. Elice AI Cloud에서 발급받은 키 사용 시
-        self.llm = ChatOpenAI(
-            openai_api_key=api_key,
-            model="openai/gpt-5-nano",
-            base_url="https://mlapi.run/daef5150-72ef-48ff-8861-df80052ea7ac/v1", # (입력 필요)
-            temperature=1,
-            streaming=False,
-        )
-        self.route_llm = ChatOpenAI(
-            openai_api_key=api_key,
-            model="openai/gpt-5-nano",
-            base_url="https://mlapi.run/daef5150-72ef-48ff-8861-df80052ea7ac/v1", # (입력 필요)
-            temperature=1,
-        )
-        self.embeddings = OpenAIEmbeddings(
-            openai_api_key=api_key,
-            model="openai/text-embedding-3-small", 
-            base_url="https://mlapi.run/b54ff33e-6d14-42df-93f9-0f1132160ee8/v1"                   # (입력 필요)
-        )
+        self.embeddings = OpenAIEmbeddings(openai_api_key=api_key)
 
         self.df_data = df_data
         self.pdf_path = pdf_path
@@ -112,7 +90,7 @@ class ExcelPDFChatbot:
 
             # 텍스트 스플리터로 텍스트를 나눕니다.
             text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=300, chunk_overlap=50
+                chunk_size=512, chunk_overlap=100
             )
             split_docs = text_splitter.split_documents(docs)
 

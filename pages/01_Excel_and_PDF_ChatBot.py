@@ -8,11 +8,11 @@ from utils.custom_chatbot import ExcelPDFChatbot
 st.set_page_config(page_title="🦜 엑셀 데이터와 PDF 문서 기반 챗봇")
 st.title("🦜 엑셀 데이터와 PDF 문서를 모두 활용하는 챗봇")
 
-file_path = "./pages/data/RE177_2023년 국내외 인공지능 산업 동향 연구.pdf"
+file_path = "./pages/data/file1.pdf"
 file_description = "인공지능 산업 동향"
-data_path = "./pages/data/도로교통공단_사고유형별_교통사고_통계_20231231.csv"
+data_path = "./pages/data/file2.csv"
 data_description = "교통사고 통계"
-df = pd.read_csv(data_path, encoding="cp949")
+df = pd.read_csv(data_path, encoding="utf-8")
 
 
 @st.cache_resource
@@ -49,7 +49,7 @@ st.markdown(
 
 st.markdown(
     """
-- 예시 질문 (인공지능 산업 동향 연구보고서): 인공지능에 투자를 많이 하고 있는 기업들을 알려줘
+- 예시 질문 (인공지능 산업 동향 연구보고서): 미국의 대표적인 AI기업들을 알려줘
 - 예시 질문 (교통사고 현황 데이터 활용): 사고유형대분류가 차대차인 사고건수를 알려줘
 - 예시 질문 (교통사고 현황 데이터 시각화): 사고유형 대분류에 따른 중상자수를 파이차트로 그려줘
 - 예시 질문 (데이터 무관): 저녁 메뉴 추천해줘
