@@ -55,17 +55,23 @@ class ExcelPDFChatbot:
         """
         self.llm = ChatOpenAI(
             openai_api_key=api_key,
-            model="gpt-4o-mini",
-            temperature=0,
-            streaming=True,
+            model="openai/gpt-5-nano",
+            base_url="https://mlapi.run/daef5150-72ef-48ff-8861-df80052ea7ac/v1",
+            temperature=1,
+            streaming=False,
         )
         self.route_llm = ChatOpenAI(
             openai_api_key=api_key,
-            model="gpt-4o-mini",
-            temperature=0,
+            model="openai/gpt-5-nano",
+            base_url="https://mlapi.run/daef5150-72ef-48ff-8861-df80052ea7ac/v1",
+            temperature=1,
         )
-        self.embeddings = OpenAIEmbeddings(openai_api_key=api_key)
-
+        self.embeddings = OpenAIEmbeddings(
+            openai_api_key=api_key,
+            model="openai/text-embedding-3-small", 
+            base_url="https://mlapi.run/b54ff33e-6d14-42df-93f9-0f1132160ee8/v1"                   # (입력 필요)
+        )
+        
         self.df_data = df_data
         self.pdf_path = pdf_path
 
