@@ -1,4 +1,4 @@
-# 핵심 호환성 해결을 위한 버전 고정
+# 핵심 호환성 해결 (반드시 이 버전을 유지하세요)
 openai==1.28.1
 httpx==0.27.2
 langchain-openai==0.1.7
@@ -6,7 +6,7 @@ langchain-community==0.2.0
 langchain-core==0.2.0
 langchain==0.2.0
 
-# 기존 데이터 및 UI 라이브러리 (버전 유지)
+# 나머지 라이브러리
 numpy==1.26.4
 pandas==1.5.3
 pydantic==2.9.2
