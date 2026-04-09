@@ -5,10 +5,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
 from dotenv import load_dotenv
-from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import PyPDFLoader
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_openai import ChatOpenAI                                     # ✅ 수정
+from langchain_community.document_loaders import PyPDFLoader                # ✅ 수정
+from langchain_openai import OpenAIEmbeddings                               # ✅ 수정
+from langchain_text_splitters import RecursiveCharacterTextSplitter         # ✅ 수정
 from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -68,10 +68,10 @@ class ExcelPDFChatbot:
         )
         self.embeddings = OpenAIEmbeddings(
             openai_api_key=api_key,
-            model="openai/text-embedding-3-small", 
-            base_url="https://mlapi.run/b54ff33e-6d14-42df-93f9-0f1132160ee8/v1"                   # (입력 필요)
+            model="openai/text-embedding-3-small",
+            base_url="https://mlapi.run/b54ff33e-6d14-42df-93f9-0f1132160ee8/v1"
         )
-        
+
         self.df_data = df_data
         self.pdf_path = pdf_path
 
@@ -158,17 +158,7 @@ class ExcelPDFChatbot:
         return answer
 
     def query(self, state: State):
-        """
-        데이터를 쿼리하는 코드를 생성하고, 실행하고, 그 결과를 포함한 State를 반환합니다.
-        위 과정은 앞서 정의한 `find_data` 함수를 활용합니다.
-
-        Args:
-            state (dict): 현재 그래프 상태
-
-        Returns:
-            state (dict): 쿼리한 데이터를 포함한 새로운 State
-        """
-        print("---데이터 쿼리---")  # 현재 상태를 확인하기 위한 Print문
+        print("---데이터 쿼리---")
         question = state["question"]
 
         if self.df_data is None:
@@ -176,11 +166,8 @@ class ExcelPDFChatbot:
                 "Please provide Excel data to query while initializing the chatbot."
             )
 
-        # Retrieval
-        # 이전 실습에서 `find_data` 함수를 사용했지만, 여기서는 query 함수에 해당 로직을 포함시켰습니다.
         system_message = f"당신은 주어진 {self.df_description} 데이터를 분석하는 데이터 분석가입니다.\n"
         system_message += f"{self.df_description} 데이터가 저장된 df DataFrame에서 데이터를 출력하여 주어진 질문에 답할 수 있는 파이썬 코드를 작성하세요. "
-        # system_message += f"df DataFrame에 액세스할 수 있습니다.\n"
         system_message += (
             f"`df DataFrame에는 다음과 같은 열이 있습니다: {self.df_columns}\n"
         )
@@ -195,7 +182,6 @@ class ExcelPDFChatbot:
 
         prompt_with_data_info = ChatPromptTemplate.from_messages(message_with_data_info)
 
-        # 체인을 구성합니다.
         code_generate_chain = (
             {"question": RunnablePassthrough()}
             | prompt_with_data_info
@@ -213,20 +199,10 @@ class ExcelPDFChatbot:
         }
 
     def answer_with_data(self, state: State):
-        """
-        쿼리한 데이터를 바탕으로 답변을 생성합니다.
-
-        Args:
-            state (dict): 현재 그래프 상태
-
-        Returns:
-            state (dict): LLM의 답변을 포함한 새로운 State
-        """
-        print("---데이터 기반 답변 생성---")  # 현재 상태를 확인하기 위한 Print문
+        print("---데이터 기반 답변 생성---")
         question = state["question"]
         data = state["data"]
 
-        # 데이터를 바탕으로 질문에 대답하는 코드를 생성합니다.
         reasoning_system_message = (
             "당신은 데이터를 바탕으로 질문에 답하는 데이터 분석가입니다.\n"
         )
@@ -246,7 +222,6 @@ class ExcelPDFChatbot:
             | StrOutputParser()
         )
 
-        # 대답 생성
         generation = reasoning_with_data_chain.invoke(
             {"data": data, "question": question}
         )
@@ -258,16 +233,7 @@ class ExcelPDFChatbot:
         }
 
     def answer(self, state: State):
-        """
-        데이터를 쿼리하지 않고 답변을 바로 생성합니다.
-
-        Args:
-            state (dict): 현재 그래프 상태
-
-        Returns:
-            state (dict): LLM의 답변을 포함한 새로운 State
-        """
-        print("---답변 생성---")  # 현재 상태를 확인하기 위한 Print문
+        print("---답변 생성---")
         question = state["question"]
 
         return {
@@ -276,28 +242,14 @@ class ExcelPDFChatbot:
         }
 
     def plot_graph(self, state: State):
-        """
-        현재 그래프 상태를 시각화합니다.
-
-        Args:
-            state (dict): 현재 그래프 상태
-
-        Returns:
-            None
-        """
-
         def change_plot_to_save(code: str) -> str:
-
-            # plt.plot() 뒤에 plt.savefig('plot.png')을 추가합니다.
             code = code.split("plt.plot()")[0]
             code += "plt.plot()\nplt.savefig('plot.png')"
             return code
 
-        print("---그래프 시각화---")  # 현재 상태를 확인하기 위한 Print문
+        print("---그래프 시각화---")
         question = state["question"]
 
-        # 챗봇이 이미지를 안정적으로 불러올 수 있도록 프롬프트를 개선했습니다.
-        # 그래프를 그릴 경우, 반드시 `plt.plot()` 으로 코드를 마무리해야 합니다.
         system_message = (
             f"당신은 주어진 {self.df_description} 데이터를 분석하는 데이터 분석가입니다.\n"
             f"{self.df_description} 데이터가 저장된 df DataFrame에서 데이터를 추출하여 "
@@ -313,22 +265,18 @@ class ExcelPDFChatbot:
 
         prompt_with_data_info = ChatPromptTemplate.from_messages(message_with_data_info)
 
-        # 체인을 구성합니다.
         code_generate_chain = (
             {"question": RunnablePassthrough()}
             | prompt_with_data_info
             | self.llm
             | StrOutputParser()
             | python_code_parser
-            | change_plot_to_save  # plt.plot()를 plt.savefig('plot.png')로 변경합니다.
+            | change_plot_to_save
         )
         code = code_generate_chain.invoke(question)
-        # 코드를 실행하고, 출력값 혹은 에러 메시지를 반환합니다.
         answer = run_code(code, df=self.df_data)
-        # 챗봇이 `plot.png` 파일을 불러오도록 설정합니다.
         data = "plot.png"
 
-        # 에러가 발생했을 경우, data를 None으로 설정합니다.
         if "Error" in answer:
             data = None
         return {
@@ -339,50 +287,24 @@ class ExcelPDFChatbot:
         }
 
     def retrieval(self, state: State):
-        """
-        데이터 검색을 수행합니다.
-
-        Args:
-            state (dict): 현재 그래프 상태
-
-        Returns:
-            state (dict): 검색된 데이터를 포함한 새로운 State
-        """
-
         def get_retrieved_text(docs):
             result = "\n".join([doc.page_content for doc in docs])
             return result
 
-        print("---데이터 검색---")  # 현재 상태를 확인하기 위한 Print문
+        print("---데이터 검색---")
         question = state["question"]
 
-        # Retrieval Chain
         retrieval_chain = self.db_retriever | get_retrieved_text
-
         data = retrieval_chain.invoke(question)
 
         return {"question": question, "data": data}
 
     def answer_with_retrieved_data(self, state: State):
-        """
-        검색된 데이터를 바탕으로 답변을 생성합니다.
-
-        Args:
-            state (dict): 현재 그래프 상태
-
-        Returns:
-            state (dict): LLM의 답변을 포함한 새로운 State
-        """
-        # role에는 "AI 어시스턴트"가, question에는 "당신을 소개해주세요."가 들어갈 수 있습니다.
-
-        print(
-            "---검색된 데이터를 바탕으로 답변 생성---"
-        )  # 현재 상태를 확인하기 위한 Print문
+        print("---검색된 데이터를 바탕으로 답변 생성---")
 
         question = state["question"]
         data = state["data"]
 
-        # 2챕터의 프롬프트와 체인을 활용합니다.
         messages_with_contexts = [
             (
                 "system",
@@ -397,37 +319,16 @@ class ExcelPDFChatbot:
         ]
         prompt_with_context = ChatPromptTemplate.from_messages(messages_with_contexts)
 
-        # 체인 구성
         qa_chain = prompt_with_context | self.llm | StrOutputParser()
 
         generation = qa_chain.invoke({"context": data, "question": question})
         return {"question": question, "data": data, "generation": generation}
 
     def _extract_route(self, state: State) -> str:
-        """
-        라우팅된 질문을 추출합니다.
-
-        Args:
-            state (dict): 현재 그래프 상태
-
-        Returns:
-            str: 라우팅된 질문
-        """
         return state["generation"]
 
     def route_question(self, state: State):
-        """
-        질문을 라우팅합니다.
-
-        Args:
-            state (dict): 현재 그래프 상태
-
-        Returns:
-            state (dict): 라우팅된 질문을 포함한 새로운 State
-        """
         print("---질문 라우팅---")
-        # 시스템 메시지에 사용 가능한 툴과 각 툴을 사용할 상황을 명시합니다.
-        # 수월한 선택을 위해 JSON 형식으로 출력하도록 프롬프트에 지정합니다.
         route_system_message = "당신은 사용자의 질문에 RAG, 엑셀 데이터 중 어떤 것을 활용할 수 있는지 결정하는 전문가입니다."
 
         usable_tools_list = ["`plain_answer`"]
@@ -457,8 +358,6 @@ class ExcelPDFChatbot:
         route_prompt = ChatPromptTemplate.from_messages(
             [("system", route_system_message), ("human", route_user_message)]
         )
-        # 로직 선택용 LLM 객체를 생성합니다.
-        # 출력 양식을 json으로 명시하고, 같은 질문에 같은 로직을 적용하기 위해 temperature를 0으로 설정합니다.
         router_chain = route_prompt | self.route_llm | JsonOutputParser()
         route = router_chain.invoke({"question": state["question"]})["route"]
         return {
